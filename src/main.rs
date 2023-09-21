@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use std::{f64, path::PathBuf, num::NonZeroU8, str::FromStr};
+use std::{f64, num::NonZeroU8, path::PathBuf, str::FromStr};
 
 use osm_local_tile_dl::*;
 
@@ -49,7 +49,9 @@ impl FromStr for BoundingBoxValue {
     type Err = String;
 
     fn from_str(value: &str) -> Result<Self, String> {
-        let value = value.parse::<f64>().map_err(|_| "must be numeric".to_owned())?;
+        let value = value
+            .parse::<f64>()
+            .map_err(|_| "must be numeric".to_owned())?;
 
         if value < 0f64 {
             return Err("must be >= 0°".to_owned());
@@ -70,7 +72,7 @@ async fn main() -> Result<()> {
             cli.north.value,
             cli.east.value,
             cli.south.value,
-            cli.west.value
+            cli.west.value,
         ),
         fetch_rate: cli.rate.get(),
         output_folder: &cli.output,

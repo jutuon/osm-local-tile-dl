@@ -38,7 +38,7 @@
 //! # }
 //! ```
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use futures::{prelude::*, stream};
 use indicatif::ProgressBar;
 use reqwest::Client;
@@ -157,10 +157,7 @@ pub async fn fetch(cfg: Config<'_>) -> Result<()> {
                     Ok(()) => (),
                     Err(e) => eprintln!(
                         "Failed fetching tile {}x{}x{}: {:?}",
-                        tile.z,
-                        tile.x,
-                        tile.y,
-                        e,
+                        tile.z, tile.x, tile.y, e,
                     ),
                 }
             }
@@ -268,12 +265,14 @@ impl Tile {
     ) -> Result<()> {
         let mut output_tile_path = output_folder.join(self.z.to_string());
         output_tile_path.push(self.x.to_string());
-        fs::create_dir_all(&output_tile_path).await.with_context(|| {
-            format!(
-                "failed creating output directory for tile {}x{}x{}",
-                self.x, self.y, self.z
-            )
-        })?;
+        fs::create_dir_all(&output_tile_path)
+            .await
+            .with_context(|| {
+                format!(
+                    "failed creating output directory for tile {}x{}x{}",
+                    self.x, self.y, self.z
+                )
+            })?;
         output_tile_path.push(format!("{}.png", self.y.to_string()));
 
         if output_tile_path.exists() {
@@ -285,10 +284,11 @@ impl Tile {
             .replace("{y}", &self.y.to_string())
             .replace("{z}", &self.z.to_string());
 
-        if tile_url.starts_with("http://192.168.") ||
-            tile_url.starts_with("http://10.") ||
-            tile_url.starts_with("http://127.0.0.1") ||
-            tile_url.starts_with("http://localhost") {
+        if tile_url.starts_with("http://192.168.")
+            || tile_url.starts_with("http://10.")
+            || tile_url.starts_with("http://127.0.0.1")
+            || tile_url.starts_with("http://localhost")
+        {
             // local tile URL
         } else {
             return Err(anyhow!("only local HTTP tile URLs are supported"))?;
