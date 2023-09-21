@@ -9,7 +9,7 @@
 //! # CLI Example
 //!
 //! ```bash
-//! osm-local-tile-dl \
+//! cargo run --release -- \
 //!   --north 50.811 \
 //!   --east 6.1649 \
 //!   --south 50.7492 \
@@ -274,7 +274,7 @@ impl Tile {
                 self.x, self.y, self.z
             )
         })?;
-        output_tile_path.push(self.y.to_string());
+        output_tile_path.push(format!("{}.png", self.y.to_string()));
 
         if output_tile_path.exists() {
             return Ok(());
