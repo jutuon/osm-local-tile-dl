@@ -13,7 +13,7 @@ readme = "README.md"
 
 [dependencies]
 anyhow = "1.0.75"
-clap = "2.34.0"
+clap = { version = "4.4", features = ["cargo", "derive"] }
 futures = "0.3.28"
 indicatif = "0.17.6"
 rand = "0.8.5"

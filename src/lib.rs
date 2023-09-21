@@ -44,24 +44,21 @@
 //! # }
 //! ```
 
-use anyhow::{Context, Result, Error, anyhow};
+use anyhow::{Context, Result, anyhow};
 use futures::{prelude::*, stream};
 use indicatif::ProgressBar;
-use rand::{self, seq::SliceRandom};
-use reqwest::{Client, StatusCode, IntoUrl};
+use reqwest::Client;
 use std::{
-    collections::HashMap,
     f64,
     fmt::Debug,
     io::{Error as IoError, ErrorKind},
     path::Path,
-    time::Duration,
-    u64, mem::replace,
+    u64,
 };
 use tokio::{
     self,
     fs::{self, File},
-    io::{self, AsyncWriteExt}, time,
+    io::AsyncWriteExt,
 };
 
 /// A bounding box consisting of north, east, south and west coordinate boundaries
@@ -160,23 +157,20 @@ pub async fn fetch(cfg: Config<'_>) -> Result<()> {
             let http_client = client.clone();
 
             async move {
-                let mut res = Ok(());
-
-                res = tile
+                let res = tile
                     .fetch_from(&http_client, cfg.url, cfg.output_folder)
                     .await;
 
-                if res.is_ok() {
-                    return;
+                match res {
+                    Ok(()) => (),
+                    Err(e) => eprintln!(
+                        "Failed fetching tile {}x{}x{}: {:?}",
+                        tile.z,
+                        tile.x,
+                        tile.y,
+                        e,
+                    ),
                 }
-
-                eprintln!(
-                    "Failed fetching tile {}x{}x{}: {:?}",
-                    tile.z,
-                    tile.x,
-                    tile.y,
-                    res.unwrap_err(),
-                );
             }
         })
         .await;
