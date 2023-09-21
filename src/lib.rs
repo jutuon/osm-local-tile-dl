@@ -9,7 +9,7 @@
 //! # CLI Example
 //!
 //! ```bash
-//! osm-tile-downloader \
+//! osm-local-tile-dl \
 //!   --north 50.811 \
 //!   --east 6.1649 \
 //!   --south 50.7492 \

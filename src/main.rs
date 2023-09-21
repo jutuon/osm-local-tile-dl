@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use std::{f64, path::PathBuf, num::NonZeroU8, str::FromStr};
 
-use osm_tile_downloader::*;
+use osm_local_tile_dl::*;
 
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]

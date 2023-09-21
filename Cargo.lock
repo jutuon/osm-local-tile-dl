@@ -700,8 +700,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "osm-tile-downloader"
-version = "0.2.4"
+name = "osm-local-tile-dl"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "clap",

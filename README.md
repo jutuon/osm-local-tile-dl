@@ -1,4 +1,4 @@
-# osm-tile-downloader
+# osm-local-tile-dl
 
 Download OpenStreetMap-tiles to your disk en-masse.
 
@@ -6,23 +6,25 @@ Download OpenStreetMap-tiles to your disk en-masse.
 down a tile server easily. I am not responsible for any damage this
 tool may cause.
 
+Only localhost and private network HTTP tile servers are supported.
+
 ## Usage
 
-This tool is available on [crates.io](https://crates.io) and can be
-installed via `cargo install osm-tile-downloader`. It features a helpful
-CLI you can access via `-h` / `--help`.
+1. Setup local tile server with Docker
 
-It is also available as a library.
+<https://switch2osm.org/serving-tiles/using-a-docker-container/>
+
+2. Download tiles from the tile server with this tool
 
 ## CLI Example
 
 ```bash
-osm-tile-downloader \
+cargo run --release -- \
   --north 50.811 \
   --east 6.1649 \
   --south 50.7492 \
   --west 6.031 \
-  --url https://\{s\}.tile.openstreetmap.de/\{z\}/\{x\}/\{y\}.png \
+  --url http://localhost:8080/\{z\}/\{x\}/\{y\}.png \
   --output ./tiles \
   --rate 10
 ```
@@ -38,9 +40,7 @@ async fn fetch_tiles() {
         bounding_box: BoundingBox::new_deg(50.811, 6.1649, 50.7492, 6.031),
         fetch_rate: 10,
         output_folder: Path::new("./tiles"),
-        request_retries_amount: 3,
-        url: "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png",
-        timeout: Duration::new(30, 0),
+        url: "http://localhost:8080/{z}/{x}/{y}.png",
         zoom_level: 10,
     };
     fetch(config).await.expect("failed fetching tiles");
@@ -52,4 +52,6 @@ fn main() {
 }
 ```
 
-License: MIT
+## License
+
+MIT

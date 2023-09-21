@@ -1,11 +1,11 @@
 [package]
-name = "osm-tile-downloader"
+name = "osm-local-tile-dl"
 description = "Download tiles from an OpenStreetMap tileserver to the file system"
-version = "0.2.4"
-authors = ["Moritz Gunz <moritz.gunz@gmail.com>"]
+version = "0.0.0"
+publish = false
 edition = "2018"
 
-repository = "https://github.com/NeoLegends/osm-tile-downloader"
+repository = "https://github.com/jutuon/osm-local-tile-dl"
 keywords = ["open", "street", "map", "osm", "tile"]
 categories = ["command-line-utilities"]
 license = "MIT"
