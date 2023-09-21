@@ -58,7 +58,7 @@ use std::{
     io::{Error as IoError, ErrorKind},
     path::Path,
     time::Duration,
-    u64,
+    u64, mem::replace,
 };
 use tokio::{
     self,
@@ -303,26 +303,20 @@ impl Tile {
         output_folder: &Path,
     ) -> Result<()> {
         const OSM_SERVERS: &[&'static str] = &["a", "b", "c"];
+        let server = OSM_SERVERS
+                .choose(&mut rand::thread_rng())
+                .unwrap()
+                .to_string();
 
-        let formatted_url = {
-            let mut map = HashMap::with_capacity(4);
-            map.insert(
-                "s".to_owned(),
-                OSM_SERVERS
-                    .choose(&mut rand::thread_rng())
-                    .unwrap()
-                    .to_string(),
-            );
-            map.insert("x".to_owned(), self.x.to_string());
-            map.insert("y".to_owned(), self.y.to_string());
-            map.insert("z".to_owned(), self.z.to_string());
-
-            strfmt::strfmt(url_fmt, &map).context("failed formatting URL")?
-        };
+        let tile_url = url_fmt
+                .replace("{s}", &server)
+                .replace("{x}", &self.x.to_string())
+                .replace("{y}", &self.y.to_string())
+                .replace("{z}", &self.z.to_string());
 
         let mut response_reader = loop {
             let raw_response =
-                client.get(&formatted_url).send().await.with_context(|| {
+                client.get(&tile_url).send().await.with_context(|| {
                     format!("failed fetching tile {}x{}x{}", self.x, self.y, self.z)
                 })?;
 
