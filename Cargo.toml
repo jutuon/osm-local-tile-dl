@@ -3,7 +3,7 @@ name = "osm-local-tile-dl"
 description = "Download tiles from an OpenStreetMap tileserver to the file system"
 version = "0.0.0"
 publish = false
-edition = "2018"
+edition = "2021"
 
 repository = "https://github.com/jutuon/osm-local-tile-dl"
 keywords = ["open", "street", "map", "osm", "tile"]
