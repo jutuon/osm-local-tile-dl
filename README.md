@@ -14,7 +14,9 @@ Only localhost and private network HTTP tile servers are supported.
 
 <https://switch2osm.org/serving-tiles/using-a-docker-container/>
 
-2. Download tiles from the tile server with this tool
+2. Download tiles from the tile server with this tool.
+
+The tool will not download tiles that already exist on disk.
 
 ## CLI Example
 
