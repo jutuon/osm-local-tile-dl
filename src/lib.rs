@@ -63,7 +63,7 @@ use std::{
 use tokio::{
     self,
     fs::{self, File},
-    io, time,
+    io::{self, AsyncWriteExt}, time,
 };
 
 const BACKOFF_DELAY: Duration = Duration::from_secs(10);
@@ -189,7 +189,7 @@ pub async fn fetch(cfg: Config<'_>) -> Result<()> {
                         return;
                     }
 
-                    time::delay_for(BACKOFF_DELAY).await;
+                    time::sleep(BACKOFF_DELAY).await;
                 }
 
                 eprintln!(
@@ -314,7 +314,7 @@ impl Tile {
                 .replace("{y}", &self.y.to_string())
                 .replace("{z}", &self.z.to_string());
 
-        let mut response_reader = loop {
+        let mut response_bytes = loop {
             let raw_response =
                 client.get(&tile_url).send().await.with_context(|| {
                     format!("failed fetching tile {}x{}x{}", self.x, self.y, self.z)
@@ -329,11 +329,11 @@ impl Tile {
                     .map(Duration::from_secs)
                     .unwrap_or(BACKOFF_DELAY);
 
-                time::delay_for(retry_after).await;
+                time::sleep(retry_after).await;
                 continue;
             }
 
-            let response_stream = raw_response
+            let response_bytes = raw_response
                 .error_for_status()
                 .with_context(|| {
                     format!(
@@ -341,10 +341,11 @@ impl Tile {
                         self.x, self.y, self.z
                     )
                 })?
-                .bytes_stream()
-                .map_err(|e| IoError::new(ErrorKind::Other, e));
+                .bytes()
+                .await
+                .map_err(|e| IoError::new(ErrorKind::Other, e))?;
 
-            break io::stream_reader(response_stream);
+            break response_bytes;
         };
 
         let mut output_file = {
@@ -361,11 +362,11 @@ impl Tile {
             File::create(target).await?
         };
 
-        io::copy(&mut response_reader, &mut output_file)
+        output_file.write_all_buf(&mut response_bytes)
             .await
             .with_context(|| {
                 format!(
-                    "failed streaming tile {}x{}x{} to disk",
+                    "failed saving tile {}x{}x{} to disk",
                     self.x, self.y, self.z
                 )
             })?;

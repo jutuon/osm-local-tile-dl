@@ -12,10 +12,10 @@ license = "MIT"
 readme = "README.md"
 
 [dependencies]
-anyhow = "1.0.28"
-clap = "2.33.0"
-futures = "0.3.4"
-indicatif = "0.14.0"
-rand = "0.7.3"
-reqwest = { version = "0.10.4", features = ["stream"] }
-tokio = { version = "0.2.20", features = ["fs", "macros", "stream", "time"] }
+anyhow = "1.0.75"
+clap = "2.34.0"
+futures = "0.3.28"
+indicatif = "0.17.6"
+rand = "0.8.5"
+reqwest = "0.11.20"
+tokio = { version = "1.32.0", features = ["fs", "macros", "time", "rt-multi-thread"] }
