@@ -44,11 +44,11 @@
 //! # }
 //! ```
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, Error, anyhow};
 use futures::{prelude::*, stream};
 use indicatif::ProgressBar;
 use rand::{self, seq::SliceRandom};
-use reqwest::{Client, StatusCode};
+use reqwest::{Client, StatusCode, IntoUrl};
 use std::{
     collections::HashMap,
     f64,
@@ -298,6 +298,15 @@ impl Tile {
             .replace("{x}", &self.x.to_string())
             .replace("{y}", &self.y.to_string())
             .replace("{z}", &self.z.to_string());
+
+        if tile_url.starts_with("http://192.168.") ||
+            tile_url.starts_with("http://10.") ||
+            tile_url.starts_with("http://127.0.0.1") ||
+            tile_url.starts_with("http://localhost") {
+            // local tile URL
+        } else {
+            return Err(anyhow!("only local HTTP tile URLs are supported"))?;
+        }
 
         let raw_response =
             client.get(&tile_url).send().await.with_context(|| {
