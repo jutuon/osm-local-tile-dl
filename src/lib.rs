@@ -36,9 +36,7 @@
 //!     bounding_box: BoundingBox::new_deg(50.811, 6.1649, 50.7492, 6.031),
 //!     fetch_rate: 10,
 //!     output_folder: Path::new("./tiles"),
-//!     request_retries_amount: 3,
 //!     url: "https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png",
-//!     timeout_secs: 30,
 //!     zoom_level: 10,
 //! };
 //!
@@ -65,9 +63,6 @@ use tokio::{
     fs::{self, File},
     io::{self, AsyncWriteExt}, time,
 };
-
-const BACKOFF_DELAY: Duration = Duration::from_secs(10);
-const ZERO_DURATION: Duration = Duration::from_secs(0);
 
 /// A bounding box consisting of north, east, south and west coordinate boundaries
 /// given from 0 to 2π.
@@ -97,17 +92,9 @@ pub struct Config<'a> {
     /// The folder to output the data to.
     pub output_folder: &'a Path,
 
-    /// How many times to retry a failed HTTP request.
-    pub request_retries_amount: u8,
-
     /// The URL to download individual tiles from including the replacement
     /// specifiers `{x}`, `{y}` and `{z}`.
     pub url: &'a str,
-
-    /// Timeout for fetching a single tile.
-    ///
-    /// Pass the zero duration to disable the timeout.
-    pub timeout: Duration,
 
     /// The zoom level to download to.
     pub zoom_level: u8,
@@ -164,12 +151,7 @@ pub async fn fetch(cfg: Config<'_>) -> Result<()> {
 
     let pb = ProgressBar::new(cfg.tiles().count() as u64);
 
-    let mut builder = Client::builder();
-    if cfg.timeout > ZERO_DURATION {
-        builder = builder.timeout(cfg.timeout);
-    }
-
-    let client = builder
+    let client = Client::builder()
         .build()
         .with_context(|| "failed creating HTTP client")?;
 
@@ -180,16 +162,12 @@ pub async fn fetch(cfg: Config<'_>) -> Result<()> {
             async move {
                 let mut res = Ok(());
 
-                for _ in 0..cfg.request_retries_amount {
-                    res = tile
-                        .fetch_from(&http_client, cfg.url, cfg.output_folder)
-                        .await;
+                res = tile
+                    .fetch_from(&http_client, cfg.url, cfg.output_folder)
+                    .await;
 
-                    if res.is_ok() {
-                        return;
-                    }
-
-                    time::sleep(BACKOFF_DELAY).await;
+                if res.is_ok() {
+                    return;
                 }
 
                 eprintln!(
@@ -302,51 +280,27 @@ impl Tile {
         url_fmt: &str,
         output_folder: &Path,
     ) -> Result<()> {
-        const OSM_SERVERS: &[&'static str] = &["a", "b", "c"];
-        let server = OSM_SERVERS
-                .choose(&mut rand::thread_rng())
-                .unwrap()
-                .to_string();
-
         let tile_url = url_fmt
-                .replace("{s}", &server)
-                .replace("{x}", &self.x.to_string())
-                .replace("{y}", &self.y.to_string())
-                .replace("{z}", &self.z.to_string());
+            .replace("{x}", &self.x.to_string())
+            .replace("{y}", &self.y.to_string())
+            .replace("{z}", &self.z.to_string());
 
-        let mut response_bytes = loop {
-            let raw_response =
-                client.get(&tile_url).send().await.with_context(|| {
-                    format!("failed fetching tile {}x{}x{}", self.x, self.y, self.z)
-                })?;
+        let raw_response =
+            client.get(&tile_url).send().await.with_context(|| {
+                format!("failed fetching tile {}x{}x{}", self.x, self.y, self.z)
+            })?;
 
-            if raw_response.status() == StatusCode::TOO_MANY_REQUESTS {
-                let retry_after = raw_response
-                    .headers()
-                    .get("Retry-After")
-                    .and_then(|v| v.to_str().ok())
-                    .and_then(|val| val.parse::<u64>().ok())
-                    .map(Duration::from_secs)
-                    .unwrap_or(BACKOFF_DELAY);
-
-                time::sleep(retry_after).await;
-                continue;
-            }
-
-            let response_bytes = raw_response
-                .error_for_status()
-                .with_context(|| {
-                    format!(
-                        "received invalid status code fetching tile {}x{}x{}",
-                        self.x, self.y, self.z
-                    )
-                })?
-                .bytes()
-                .await
-                .map_err(|e| IoError::new(ErrorKind::Other, e))?;
-
-            break response_bytes;
-        };
+        let mut response_bytes = raw_response
+            .error_for_status()
+            .with_context(|| {
+                format!(
+                    "received invalid status code fetching tile {}x{}x{}",
+                    self.x, self.y, self.z
+                )
+            })?
+            .bytes()
+            .await
+            .map_err(|e| IoError::new(ErrorKind::Other, e))?;
 
         let mut output_file = {
             let mut target = output_folder.join(self.z.to_string());
