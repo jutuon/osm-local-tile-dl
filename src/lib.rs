@@ -280,6 +280,20 @@ impl Tile {
         url_fmt: &str,
         output_folder: &Path,
     ) -> Result<()> {
+        let mut output_tile_path = output_folder.join(self.z.to_string());
+        output_tile_path.push(self.x.to_string());
+        fs::create_dir_all(&output_tile_path).await.with_context(|| {
+            format!(
+                "failed creating output directory for tile {}x{}x{}",
+                self.x, self.y, self.z
+            )
+        })?;
+        output_tile_path.push(self.y.to_string());
+
+        if output_tile_path.exists() {
+            return Ok(());
+        }
+
         let tile_url = url_fmt
             .replace("{x}", &self.x.to_string())
             .replace("{y}", &self.y.to_string())
@@ -302,21 +316,9 @@ impl Tile {
             .await
             .map_err(|e| IoError::new(ErrorKind::Other, e))?;
 
-        let mut output_file = {
-            let mut target = output_folder.join(self.z.to_string());
-            target.push(self.x.to_string());
-            fs::create_dir_all(&target).await.with_context(|| {
-                format!(
-                    "failed creating output directory for tile {}x{}x{}",
-                    self.x, self.y, self.z
-                )
-            })?;
-            target.push(self.y.to_string());
-
-            File::create(target).await?
-        };
-
-        output_file.write_all_buf(&mut response_bytes)
+        File::create(&output_tile_path)
+            .await?
+            .write_all_buf(&mut response_bytes)
             .await
             .with_context(|| {
                 format!(
