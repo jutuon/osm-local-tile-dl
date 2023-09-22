@@ -17,6 +17,8 @@ Only localhost and private network HTTP tile servers are supported.
 2. Download tiles from the tile server with this tool.
 
 The tool will not download tiles that already exist on disk.
+Also parallel downloads are disabled by default. Those
+can be enabled by setting `--rate` to a value greater than 1.
 
 ## CLI Example
 

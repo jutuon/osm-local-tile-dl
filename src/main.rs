@@ -24,7 +24,7 @@ struct Cli {
     pub west: BoundingBoxValue,
 
     /// The amount of tiles fetched in parallel.
-    #[arg(short, long, value_name = "PARALLEL_FETCHES", default_value = "5")]
+    #[arg(short, long, value_name = "PARALLEL_FETCHES", default_value = "1")]
     pub rate: NonZeroU8,
 
     /// The maximum zoom level to fetch
