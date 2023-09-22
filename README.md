@@ -35,7 +35,7 @@ cargo run --release -- \
 
 ## Library Example
 ```rust
-use osm_tile_downloader::{fetch, BoundingBox, Config};
+use osm_local_tile_dl::{fetch, BoundingBox, Config};
 use std::path::Path;
 use std::time::Duration;
 

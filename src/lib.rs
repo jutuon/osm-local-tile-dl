@@ -21,7 +21,7 @@
 //!
 //! # Library Example
 //! ```rust
-//! use osm_tile_downloader::{fetch, BoundingBox, Config};
+//! use osm_local_tile_dl::{fetch, BoundingBox, Config};
 //! use std::path::Path;
 //!
 //! # #[tokio::main]
@@ -60,7 +60,7 @@ use tokio::{
 ///
 /// # Example
 /// ```rust
-/// # use osm_tile_downloader::BoundingBox;
+/// # use osm_local_tile_dl::BoundingBox;
 /// let aachen_germany = BoundingBox::new_deg(50.811, 6.1649, 50.7492, 6.031);
 /// ```
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -107,7 +107,7 @@ pub struct Tile {
 ///
 /// # Example
 /// ```rust
-/// use osm_tile_downloader::{fetch, BoundingBox, Config};
+/// use osm_local_tile_dl::{fetch, BoundingBox, Config};
 /// # use std::path::Path;
 ///
 /// # #[tokio::main]
@@ -174,7 +174,7 @@ impl BoundingBox {
     ///
     /// # Example
     /// ```rust
-    /// # use osm_tile_downloader::BoundingBox;
+    /// # use osm_local_tile_dl::BoundingBox;
     /// let aachen_germany = BoundingBox::new_deg(50.811, 6.1649, 50.7492, 6.031);
     /// ```
     ///
